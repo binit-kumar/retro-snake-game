@@ -385,6 +385,7 @@ AI generated comprehensive responsive design system:
 
 
 ![Final Game Screenshot](../images/retro-snake-game.svg)
+
 *The completed retro Snake game with authentic green-on-black terminal aesthetic*
 
 ### Key Visual Features Achieved
