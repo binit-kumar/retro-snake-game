@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snake Game Tests</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .test { margin: 10px 0; }
+        .pass { color: green; }
+        .fail { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Snake Game Unit Tests</h1>
+    <div id="results"></div>
+    
+    <script src="../scripts/script.js"></script>
+    <script>
+        function test(name, fn) {
+            try {
+                fn();
+                document.getElementById('results').innerHTML += 
+                    `<div class="test pass">✓ ${name}</div>`;
+            } catch (e) {
+                document.getElementById('results').innerHTML += 
+                    `<div class="test fail">✗ ${name}: ${e.message}</div>`;
+            }
+        }
+
+        function assert(condition, message) {
+            if (!condition) throw new Error(message);
+        }
+
+        // Tests
+        test('calculateNewHead moves correctly', () => {
+            const head = {x: 5, y: 5};
+            assert(calculateNewHead(head, 1, 0).x === 6, 'Should move right');
+            assert(calculateNewHead(head, -1, 0).x === 4, 'Should move left');
+            assert(calculateNewHead(head, 0, 1).y === 6, 'Should move down');
+            assert(calculateNewHead(head, 0, -1).y === 4, 'Should move up');
+        });
+
+        test('isGameOver detects wall collision', () => {
+            const snake = [{x: 5, y: 5}];
+            assert(isGameOver({x: -1, y: 5}, snake, 20), 'Should detect left wall');
+            assert(isGameOver({x: 20, y: 5}, snake, 20), 'Should detect right wall');
+            assert(isGameOver({x: 5, y: -1}, snake, 20), 'Should detect top wall');
+            assert(isGameOver({x: 5, y: 20}, snake, 20), 'Should detect bottom wall');
+        });
+
+        test('isGameOver detects self collision', () => {
+            const snake = [{x: 5, y: 5}, {x: 4, y: 5}, {x: 3, y: 5}];
+            assert(isGameOver({x: 4, y: 5}, snake, 20), 'Should detect body collision');
+            assert(!isGameOver({x: 6, y: 5}, snake, 20), 'Should not detect false collision');
+        });
+
+        test('checkFoodCollision works correctly', () => {
+            const food = {x: 10, y: 10};
+            assert(checkFoodCollision({x: 10, y: 10}, food), 'Should detect collision');
+            assert(!checkFoodCollision({x: 9, y: 10}, food), 'Should not detect false collision');
+        });
+
+        test('calculateNewSpeed increases correctly', () => {
+            assert(calculateNewSpeed(50, 200) === 180, 'Should decrease by 20 at score 50');
+            assert(calculateNewSpeed(100, 180) === 160, 'Should decrease by 20 at score 100');
+            assert(calculateNewSpeed(40, 200) === 200, 'Should not change at score 40');
+            assert(calculateNewSpeed(150, 60) === 50, 'Should not go below 50');
+        });
+
+        test('generateFoodPosition avoids snake body', () => {
+            const snake = [{x: 0, y: 0}, {x: 1, y: 0}];
+            const food = generateFoodPosition(snake, 2);
+            const onSnake = snake.some(segment => segment.x === food.x && segment.y === food.y);
+            assert(!onSnake, 'Food should not spawn on snake');
+        });
+    </script>
+</body>
+</html>

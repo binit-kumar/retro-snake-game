@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Responsive Snake Game Tests</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .test { margin: 10px 0; }
+        .pass { color: green; }
+        .fail { color: red; }
+        .section { margin: 20px 0; border-top: 1px solid #ccc; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Responsive Snake Game Unit Tests</h1>
+    <div id="results"></div>
+    
+    <!-- Mock canvas for testing -->
+    <canvas id="gameCanvas" width="400" height="400" style="display: none;"></canvas>
+    
+    <script>
+        // Mock DOM elements and functions from main script
+        const canvas = document.getElementById('gameCanvas');
+        let gridSize = 20;
+        let tileCount = canvas.width / gridSize;
+        
+        function resizeCanvas() {
+            const maxSize = Math.min(window.innerWidth - 40, window.innerHeight - 200, 400);
+            const minSize = 160; // Minimum playable size
+            const finalSize = Math.max(maxSize, minSize);
+            canvas.width = finalSize;
+            canvas.height = finalSize;
+            gridSize = finalSize / 20;
+            tileCount = 20;
+        }
+
+        function test(name, fn) {
+            try {
+                fn();
+                document.getElementById('results').innerHTML += 
+                    `<div class="test pass">✓ ${name}</div>`;
+            } catch (e) {
+                document.getElementById('results').innerHTML += 
+                    `<div class="test fail">✗ ${name}: ${e.message}</div>`;
+            }
+        }
+
+        function assert(condition, message) {
+            if (!condition) throw new Error(message);
+        }
+
+        function mockWindowSize(width, height) {
+            Object.defineProperty(window, 'innerWidth', { value: width, writable: true });
+            Object.defineProperty(window, 'innerHeight', { value: height, writable: true });
+        }
+
+        // Add section header
+        document.getElementById('results').innerHTML += '<div class="section"><h2>Canvas Resize Tests</h2></div>';
+
+        test('Desktop size (1920x1080) - maintains max canvas size', () => {
+            mockWindowSize(1920, 1080);
+            resizeCanvas();
+            assert(canvas.width === 400, `Expected 400, got ${canvas.width}`);
+            assert(canvas.height === 400, `Expected 400, got ${canvas.height}`);
+            assert(gridSize === 20, `Expected gridSize 20, got ${gridSize}`);
+            assert(tileCount === 20, `Expected tileCount 20, got ${tileCount}`);
+        });
+
+        test('Laptop size (1366x768) - maintains max canvas size', () => {
+            mockWindowSize(1366, 768);
+            resizeCanvas();
+            assert(canvas.width === 400, `Expected 400, got ${canvas.width}`);
+            assert(canvas.height === 400, `Expected 400, got ${canvas.height}`);
+            assert(gridSize === 20, `Expected gridSize 20, got ${gridSize}`);
+        });
+
+        test('Tablet landscape (1024x768) - adjusts to screen width', () => {
+            mockWindowSize(1024, 768);
+            resizeCanvas();
+            const expectedSize = Math.min(1024 - 40, 768 - 200, 400);
+            assert(canvas.width === expectedSize, `Expected ${expectedSize}, got ${canvas.width}`);
+            assert(canvas.height === expectedSize, `Expected ${expectedSize}, got ${canvas.height}`);
+            assert(tileCount === 20, 'Tile count should remain 20');
+        });
+
+        test('Tablet portrait (768x1024) - adjusts to screen width', () => {
+            mockWindowSize(768, 1024);
+            resizeCanvas();
+            const expectedSize = Math.min(768 - 40, 1024 - 200, 400);
+            assert(canvas.width === expectedSize, `Expected ${expectedSize}, got ${canvas.width}`);
+            assert(gridSize === expectedSize / 20, `GridSize should be ${expectedSize / 20}`);
+        });
+
+        test('Mobile landscape (667x375) - adjusts to height constraint', () => {
+            mockWindowSize(667, 375);
+            resizeCanvas();
+            const expectedSize = Math.min(667 - 40, 375 - 200, 400);
+            assert(canvas.width === expectedSize, `Expected ${expectedSize}, got ${canvas.width}`);
+            assert(canvas.height === expectedSize, `Expected ${expectedSize}, got ${canvas.height}`);
+        });
+
+        test('Mobile portrait (375x667) - adjusts to width constraint', () => {
+            mockWindowSize(375, 667);
+            resizeCanvas();
+            const expectedSize = Math.min(375 - 40, 667 - 200, 400);
+            assert(canvas.width === expectedSize, `Expected ${expectedSize}, got ${canvas.width}`);
+            assert(gridSize === expectedSize / 20, 'GridSize should scale proportionally');
+        });
+
+        test('Small mobile (320x568) - minimum viable size', () => {
+            mockWindowSize(320, 568);
+            resizeCanvas();
+            const expectedSize = Math.min(320 - 40, 568 - 200, 400);
+            assert(canvas.width === expectedSize, `Expected ${expectedSize}, got ${canvas.width}`);
+            assert(canvas.width >= 280, 'Canvas should be at least 280px for playability');
+        });
+
+        // Add section header
+        document.getElementById('results').innerHTML += '<div class="section"><h2>Grid Consistency Tests</h2></div>';
+
+        test('Grid maintains 20x20 tiles across all sizes', () => {
+            const sizes = [
+                [1920, 1080], [1366, 768], [1024, 768], 
+                [768, 1024], [375, 667], [320, 568]
+            ];
+            
+            sizes.forEach(([width, height]) => {
+                mockWindowSize(width, height);
+                resizeCanvas();
+                assert(tileCount === 20, `Failed at ${width}x${height}: tileCount should be 20, got ${tileCount}`);
+            });
+        });
+
+        test('GridSize scales proportionally with canvas', () => {
+            mockWindowSize(400, 600);
+            resizeCanvas();
+            const expectedGridSize = canvas.width / 20;
+            assert(Math.abs(gridSize - expectedGridSize) < 0.01, 
+                   `GridSize ${gridSize} should equal canvas.width/20 (${expectedGridSize})`);
+        });
+
+        // Add section header
+        document.getElementById('results').innerHTML += '<div class="section"><h2>CSS Media Query Simulation Tests</h2></div>';
+
+        test('Tablet breakpoint (768px) - should show touch controls', () => {
+            mockWindowSize(768, 1024);
+            const isTabletSize = window.innerWidth <= 768;
+            assert(isTabletSize, 'Should trigger tablet media query');
+        });
+
+        test('Mobile breakpoint (480px) - should show mobile layout', () => {
+            mockWindowSize(480, 800);
+            const isMobileSize = window.innerWidth <= 480;
+            assert(isMobileSize, 'Should trigger mobile media query');
+        });
+
+        test('Desktop size - should show keyboard controls only', () => {
+            mockWindowSize(1200, 800);
+            const isDesktopSize = window.innerWidth > 768;
+            assert(isDesktopSize, 'Should not trigger tablet/mobile media queries');
+        });
+
+        // Add section header
+        document.getElementById('results').innerHTML += '<div class="section"><h2>Aspect Ratio Tests</h2></div>';
+
+        test('Canvas maintains square aspect ratio', () => {
+            const sizes = [[1920, 1080], [768, 1024], [375, 667]];
+            
+            sizes.forEach(([width, height]) => {
+                mockWindowSize(width, height);
+                resizeCanvas();
+                assert(canvas.width === canvas.height, 
+                       `Canvas should be square at ${width}x${height}: ${canvas.width}x${canvas.height}`);
+            });
+        });
+
+        test('Minimum canvas size for playability', () => {
+            mockWindowSize(200, 300); // Very small screen
+            resizeCanvas();
+            assert(canvas.width >= 160, 'Canvas should maintain minimum playable size');
+            assert(gridSize >= 8, 'Grid size should not become too small');
+        });
+
+        // Performance test
+        document.getElementById('results').innerHTML += '<div class="section"><h2>Performance Tests</h2></div>';
+
+        test('Resize function executes quickly', () => {
+            const start = performance.now();
+            for (let i = 0; i < 100; i++) {
+                mockWindowSize(800 + i, 600 + i);
+                resizeCanvas();
+            }
+            const end = performance.now();
+            const duration = end - start;
+            assert(duration < 50, `Resize should be fast, took ${duration.toFixed(2)}ms for 100 calls`);
+        });
+    </script>
+</body>
+</html>

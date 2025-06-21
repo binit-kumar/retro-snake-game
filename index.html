@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Retro Snake Game</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>SNAKE</h1>
+        <div class="score">Score: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="controls">
+            <p class="desktop-only">Use WASD or Arrow Keys to move</p>
+            <div class="touch-controls">
+                <div class="touch-row">
+                    <button class="touch-btn" data-direction="up">↑</button>
+                </div>
+                <div class="touch-row">
+                    <button class="touch-btn" data-direction="left">←</button>
+                    <button class="touch-btn" data-direction="down">↓</button>
+                    <button class="touch-btn" data-direction="right">→</button>
+                </div>
+            </div>
+            <button id="restartBtn">Restart Game</button>
+        </div>
+    </div>
+    <script src="scripts/script.js"></script>
+</body>
+</html>
